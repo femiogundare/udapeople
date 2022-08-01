@@ -229,6 +229,8 @@ jobs:
             sudo ./aws/install
       - restore_cache:
           keys: [backend-build]
+      - attach_workspace:
+          at: ~/
       - run:
           name: Run migrations
           command: |
@@ -257,10 +259,10 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update --no-cache tar gzip nodejs npm ansible curl aws-cli
-      - attach_workspace:
-          at: ~/
       - restore_cache:
           keys: [frontend-build]
+      - attach_workspace:
+          at: ~/
       - run:
           name: Get backend url
           command: |
@@ -297,10 +299,10 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update --no-cache tar gzip nodejs npm tree aws-cli ansible
-      - attach_workspace:
-          at: ~/
       - restore_cache:
           keys: [frontend-build]
+      - attach_workspace:
+          at: ~/
       - run:
           name: Deploy backend
           command: |
