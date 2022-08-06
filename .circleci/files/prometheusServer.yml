@@ -229,7 +229,7 @@ Resources:
           # autodiscover EC2 instances job
           echo "  - job_name: 'node'" >> prometheus.yml
           echo "    ec2_sd_configs:" >> prometheus.yml
-          echo "      - region: us-west-2" >> prometheus.yml
+          echo "      - region: us-east-1" >> prometheus.yml
           echo "        access_key: ${IAMUserAccessKey}" >> prometheus.yml
           echo "        secret_key: ${IAMUserAccessKey.SecretAccessKey}" >> prometheus.yml
           echo "        port: 9100" >> prometheus.yml
@@ -248,6 +248,23 @@ Resources:
           echo "    annotations:" >> /etc/prometheus/rules.yml
           echo "      summary: 'Instance  is down'" >> /etc/prometheus/rules.yml
           echo "      description: ' of job  has been down for more than 3 minutes.'" >> /etc/prometheus/rules.yml
+
+          echo "  - alert: UsingTooMuchMemory" >> /etc/prometheus/rules.yml
+          echo "    expr: node_memory_MemFree_bytes < 1000000" >> /etc/prometheus/rules.yml
+          echo "    for: 1m" >> /etc/prometheus/rules.yml
+          echo "    labels:" >> /etc/prometheus/rules.yml
+          echo "      severity: 'critical'" >> /etc/prometheus/rules.yml
+          echo "    annotations:" >> /etc/prometheus/rules.yml
+          echo "      summary: 'Instance {{ $labels.instance }} is almost out of memeory'" >> /etc/prometheus/rules.yml
+          echo "      description: '{{ $labels.instance }} of job {{ $labels.job }} is running on low memory.'" >> /etc/prometheus/rules.yml
+
+          echo "- name: Custom_rules" >> /etc/prometheus/rules.yml
+          echo "  rules:" >> /etc/prometheus/rules.yml
+          echo "  - record: CPU_Usage" >> /etc/prometheus/rules.yml
+          echo "    expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="node",mode="idle"}[5m])) * 100)" >> /etc/prometheus/rules.yml
+
+          echo "  - record: Disk_usage" >> /etc/prometheus/rules.yml
+          echo "    expr: 100 - (100 * ((node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} )  / (node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}) ))" >> /etc/prometheus/rules.yml
 
           # Create alertmanager config
           echo "route:" > alertmanager.yml
@@ -277,6 +294,25 @@ Resources:
           echo "        annotations:" >> rules.yml
           echo "          summary: Instance is down" >> rules.yml
           echo "          descriptions: of job has ben down for more than 3 minutes" >> rules.yml
+
+          
+          echo "      - alert: UsingTooMuchMemory" >> rules.yml
+          echo "        expr: node_memory_MemFree_bytes < 1000000" >> rules.yml
+          echo "        for: 1m" >> rules.yml
+          echo "        labels:" >> rules.yml
+          echo "          severity: 'critical'" >> rules.yml
+          echo "        annotations:" >> rules.yml
+          echo "          summary: 'Instance {{ $labels.instance }} is almost out of memeory'" >> rules.yml
+          echo "          description: '{{ $labels.instance }} of job {{ $labels.job }} is running on low memory.'" >> rules.yml
+
+          echo "  - name: Custom_rules" >> rules.yml
+          echo "    rules:" >> rules.yml
+          echo "      - record: CPU_Usage" >> rules.yml
+          echo "        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="node",mode="idle"}[5m])) * 100)" >> rules.yml
+
+          echo "      - record: Disk_usage" >> rules.yml
+          echo "        expr: 100 - (100 * ((node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} )  / (node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}) ))" >> rules.yml
+
           # Reposition rules.yml
           sudo mv rules.yml /etc/prometheus/rules.yml
 
